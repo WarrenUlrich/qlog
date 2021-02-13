@@ -1,0 +1,2 @@
+# qlog
+Configurable logging framework.

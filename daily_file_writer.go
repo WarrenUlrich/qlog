@@ -7,7 +7,10 @@ import (
 	"time"
 )
 
-//DailyFileWriter ...
+//DailyFileWriter is an io.Writer implementation
+//that creates a file with the provided path and extension,
+//and an added date, e.g. file_name - Mon, 02 Jan 2006.txt.
+//Creates a new file if the day changes.
 type DailyFileWriter struct {
 	Path string
 	Extension string

@@ -4,7 +4,8 @@ import (
 	"os"
 )
 
-//FileWriter ...
+//FileWriter io.Writer implementation for
+//writing to a file with a specified path and extension.
 type FileWriter struct {
 	Path      string
 	Extension string

@@ -5,47 +5,47 @@ var (
 	namedLoggers map[string]Logger
 )
 
-//Info ...
+//Info formats and writes a log message with LevelInfo severity.
 func Info(args ...interface{}) error {
 	return globalLogger.Info(args...)
 }
 
-//Infof ...
+//Infof formats and writes a log message with LevelInfo severity.
 func Infof(format string, args ...interface{}) error {
 	return globalLogger.Infof(format, args...)
 }
 
-//Debug ...
+//Debug formats and writes a log message with LevelDebug severity.
 func Debug(args ...interface{}) error {
 	return globalLogger.Debug(args...)
 }
 
-//Debugf ...
+//Debugf formats and writes a log message with LevelDebug severity.
 func Debugf(format string, args ...interface{}) error {
 	return globalLogger.Debugf(format, args...)
 }
 
-//Warn ...
+//Warn formats and writes a log message with LevelWarn severity.
 func Warn(args ...interface{}) error {
 	return globalLogger.Warn(args...)
 }
 
-//Warnf ...
+//Warnf formats and writes a log message with LevelWarn severity.
 func Warnf(format string, args ...interface{}) error {
 	return globalLogger.Warnf(format, args...)
 }
 
-//Error ...
+//Error formats and writes a log message with LevelError severity.
 func Error(args ...interface{}) error {
 	return globalLogger.Error(args...)
 }
 
-//Errorf ...
+//Errorf formats and writes a log message with LevelError severity.
 func Errorf(format string, args ...interface{}) error {
 	return globalLogger.Errorf(format, args...)
 }
 
-//Get ...
+//Get obtains a named logger, returns nil if it isn't found.
 func Get(name string) Logger {
 	l, ok := namedLoggers[name]
 	if ok {

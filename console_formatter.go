@@ -5,7 +5,9 @@ import (
 	"io"
 )
 
-//ConsoleFormatter ...
+//ConsoleFormatter Formatter implementation that
+//writes a level and time stamp, with ansi colors if indicated.
+//e.g. [INF][15:04:05.000]: Hello world
 type ConsoleFormatter struct {
 	TimeFormat string
 	Colors     bool

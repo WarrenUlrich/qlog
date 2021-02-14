@@ -8,13 +8,12 @@ import (
 //writing to a file with a specified path and extension.
 type FileWriter struct {
 	Path      string
-	Extension string
 	file      *os.File
 }
 
 func (f *FileWriter) checkFile() error {
 	if f.file == nil {
-		file, err := os.Create(f.Path + f.Extension)
+		file, err := os.Create(f.Path)
 		if err != nil {
 			return err
 		}

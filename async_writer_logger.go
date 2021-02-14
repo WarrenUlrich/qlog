@@ -3,6 +3,7 @@ package qlog
 import (
 	"fmt"
 	"io"
+	"runtime"
 	"sync"
 	"time"
 )
@@ -11,11 +12,11 @@ type asyncWriterLogger struct {
 	writers map[Level][]*struct {
 		writer    io.Writer
 		formatter Formatter
+		mutex     sync.Mutex
 	}
 
 	workerCount int
 	channel     chan *Message
-	mutex       sync.Mutex
 }
 
 func (a *asyncWriterLogger) startup() error {
@@ -27,12 +28,12 @@ func (a *asyncWriterLogger) startup() error {
 				for {
 					if msg, ok := <-a.channel; ok {
 						for _, wf := range a.writers[msg.Level] {
-							a.mutex.Lock()
+							wf.mutex.Lock()
 							wf.formatter.Format(
 								msg,
 								wf.writer,
 							)
-							a.mutex.Unlock()
+							wf.mutex.Unlock()
 						}
 					} else {
 						break
@@ -41,9 +42,9 @@ func (a *asyncWriterLogger) startup() error {
 			}()
 		}
 
-		// runtime.SetFinalizer(a, func(a *asyncWriterLogger) {
-		// 	close(a.channel)
-		// })
+		runtime.SetFinalizer(a, func(a *asyncWriterLogger) {
+			close(a.channel)
+		})
 	}
 	return nil
 }

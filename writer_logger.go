@@ -11,25 +11,24 @@ type writerLogger struct {
 	writers map[Level][]*struct {
 		writer    io.Writer
 		formatter Formatter
+		mutex     sync.Mutex
 	}
-
-	mutex sync.Mutex
 }
 
 func (w *writerLogger) write(level Level, args ...interface{}) error {
 	msg := Message{
-		Level: level,
-		Time: time.Now(),
+		Level:   level,
+		Time:    time.Now(),
 		Message: fmt.Sprint(args...),
 	}
 
 	for _, wf := range w.writers[level] {
-		w.mutex.Lock()
+		wf.mutex.Lock()
 		wf.formatter.Format(
 			&msg,
 			wf.writer,
 		)
-		w.mutex.Unlock()
+		wf.mutex.Unlock()
 	}
 
 	return nil
@@ -37,16 +36,18 @@ func (w *writerLogger) write(level Level, args ...interface{}) error {
 
 func (w *writerLogger) writef(level Level, format string, args ...interface{}) error {
 	msg := Message{
-		Level: level,
-		Time: time.Now(),
+		Level:   level,
+		Time:    time.Now(),
 		Message: fmt.Sprintf(format, args...),
 	}
 
 	for _, wf := range w.writers[level] {
+		wf.mutex.Lock()
 		wf.formatter.Format(
 			&msg,
 			wf.writer,
 		)
+		wf.mutex.Unlock()
 	}
 
 	return nil

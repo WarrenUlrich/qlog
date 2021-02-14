@@ -17,17 +17,19 @@ import "C"
 import (
 	"io"
 	"runtime"
+	"sync"
 )
 
-//LoggerBuilder is a tool for building a logger. 
+//LoggerBuilder is a tool for building a logger.
 //should be received through NewLoggerBuilder, and be built.
 type LoggerBuilder struct {
 	writers map[Level][]*struct {
 		writer    io.Writer
 		formatter Formatter
+		mutex     sync.Mutex
 	}
 
-	async bool
+	async       bool
 	workerCount int
 }
 
@@ -40,12 +42,20 @@ func NewLoggerBuilder() *LoggerBuilder {
 //to the logger, it will only be written to on the specified events. (LevelInfo, LevelDebug, etc...)
 func (l *LoggerBuilder) WithWriter(w io.Writer, f Formatter, levels ...Level) *LoggerBuilder {
 	if l.writers == nil {
-		l.writers = make(map[Level][]*struct{writer io.Writer; formatter Formatter})
+		l.writers = make(map[Level][]*struct {
+			writer    io.Writer
+			formatter Formatter
+			mutex     sync.Mutex
+		})
 	}
 
 	for _, level := range levels {
-		temp := &struct{writer io.Writer; formatter Formatter}{
-			writer: w,
+		temp := &struct {
+			writer    io.Writer
+			formatter Formatter
+			mutex     sync.Mutex
+		}{
+			writer:    w,
 			formatter: f,
 		}
 
@@ -72,7 +82,7 @@ func (l *LoggerBuilder) Build() Logger {
 
 	if l.async {
 		return &asyncWriterLogger{
-			writers: l.writers,
+			writers:     l.writers,
 			workerCount: l.workerCount,
 		}
 	}

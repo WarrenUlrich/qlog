@@ -17,7 +17,6 @@ import "C"
 import (
 	"io"
 	"runtime"
-	"sync"
 )
 
 //LoggerBuilder is a tool for building a logger.
@@ -26,10 +25,8 @@ type LoggerBuilder struct {
 	writers map[Level][]*struct {
 		writer    io.Writer
 		formatter Formatter
-		mutex     sync.Mutex
 	}
 
-	async       bool
 	workerCount int
 }
 
@@ -45,7 +42,6 @@ func (l *LoggerBuilder) WithWriter(w io.Writer, f Formatter, levels ...Level) *L
 		l.writers = make(map[Level][]*struct {
 			writer    io.Writer
 			formatter Formatter
-			mutex     sync.Mutex
 		})
 	}
 
@@ -53,7 +49,6 @@ func (l *LoggerBuilder) WithWriter(w io.Writer, f Formatter, levels ...Level) *L
 		temp := &struct {
 			writer    io.Writer
 			formatter Formatter
-			mutex     sync.Mutex
 		}{
 			writer:    w,
 			formatter: f,
@@ -64,30 +59,15 @@ func (l *LoggerBuilder) WithWriter(w io.Writer, f Formatter, levels ...Level) *L
 	return l
 }
 
-//Async log messages will be handled in a seperate goroutine,
-//workerCount specifies the amount of routines to create.
-func (l *LoggerBuilder) Async(workerCount int) *LoggerBuilder {
-	l.async = true
-	l.workerCount = workerCount
-	return l
-}
-
 //Build creates and returns a new logger.
-func (l *LoggerBuilder) Build() Logger {
+func (l *LoggerBuilder) Build() *Logger {
 
 	//TODO: Move this to compile to call
 	if runtime.GOOS == "windows" {
 		C.setup_windows_console()
 	}
 
-	if l.async {
-		return &asyncWriterLogger{
-			writers:     l.writers,
-			workerCount: l.workerCount,
-		}
-	}
-
-	return &writerLogger{
+	return &Logger{
 		writers: l.writers,
 	}
 }
@@ -95,7 +75,7 @@ func (l *LoggerBuilder) Build() Logger {
 //BuildGlobal creates and returns a new logger.
 //this logger will also be set as the global logger
 //(accessed through qlog.Info, qlog.Debug, etc...).
-func (l *LoggerBuilder) BuildGlobal() Logger {
+func (l *LoggerBuilder) BuildGlobal() *Logger {
 	globalLogger = l.Build()
 	return globalLogger
 }
@@ -103,9 +83,9 @@ func (l *LoggerBuilder) BuildGlobal() Logger {
 //BuildNamed creates and returns a new logger.
 //this logger will also be added to the named loggers
 //(accessed through qlog.Get("")). e.g. qlog.Get("console").Info("Hello world")
-func (l *LoggerBuilder) BuildNamed(name string) Logger {
+func (l *LoggerBuilder) BuildNamed(name string) *Logger {
 	if namedLoggers == nil {
-		namedLoggers = make(map[string]Logger)
+		namedLoggers = make(map[string]*Logger)
 	}
 
 	namedLoggers[name] = l.Build()

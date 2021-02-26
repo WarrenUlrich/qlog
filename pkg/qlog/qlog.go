@@ -1,8 +1,8 @@
 package qlog
 
 var (
-	globalLogger Logger
-	namedLoggers map[string]Logger
+	globalLogger *Logger
+	namedLoggers map[string]*Logger
 )
 
 //Info formats and writes a log message with LevelInfo severity.
@@ -46,7 +46,7 @@ func Errorf(format string, args ...interface{}) error {
 }
 
 //Get obtains a named logger, returns nil if it isn't found.
-func Get(name string) Logger {
+func Get(name string) *Logger {
 	l, ok := namedLoggers[name]
 	if ok {
 		return l
